@@ -9,8 +9,6 @@ class OperationSheet:
     
     def __init__(self) -> None:
         
-        # 6. Collaborate with an other user
-        
         self.current_user = 'admin'
         self.users = [
             {'user_name': 'admin', 'account': 'admin', 'password': 'admin'}, 
@@ -186,7 +184,6 @@ class OperationSheet:
             print("Now you are successfully access the sheet: " + self.sheets[self.current_sheet_index]['sheet_name'])
 
     def change_value(self):
-        
         self.print_sheet_content(self.current_sheet_index)
         row_index = input("Please enter the row number to change the value: ")
         column_index = input("Please enter the column number to change the value: ")
@@ -204,7 +201,14 @@ class OperationSheet:
             while column_index >= len(self.sheets[self.current_sheet_index]['content'][row_index]):
                 self.sheets[self.current_sheet_index]['content'][row_index].append(None)
             
-            self.sheets[self.current_sheet_index]['content'][row_index][column_index] = value
+            try:
+                # 嘗試將 value 轉換為數字類型
+                transformer_value = eval(value)
+                self.sheets[self.current_sheet_index]['content'][row_index][column_index] = transformer_value
+            except (SyntaxError, NameError):
+                # 如果轉換失敗，將原始值存儲
+                self.sheets[self.current_sheet_index]['content'][row_index][column_index] = value
+            
             print("Change the value successfully!")
         except ValueError:
             print("Please enter the correct row and column number!")
@@ -248,7 +252,6 @@ class OperationSheet:
                 
         print("This is the new user list of the sheet:", self.sheets[int(sheet_index)]['user_list'])
         
-
     def is_select_sheet(self):
         if self.current_sheet_index is None:
             print("Please select the sheet first!")
