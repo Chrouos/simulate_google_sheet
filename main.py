@@ -184,11 +184,12 @@ class OperationSheet:
             print("Now you are successfully access the sheet: " + self.sheets[self.current_sheet_index]['sheet_name'])
 
     def change_value(self):
+        
         self.print_sheet_content(self.current_sheet_index)
         row_index = input("Please enter the row number to change the value: ")
         column_index = input("Please enter the column number to change the value: ")
         value = input("Please enter the new value: ")
-
+        
         try:
             row_index = int(row_index)
             column_index = int(column_index)
