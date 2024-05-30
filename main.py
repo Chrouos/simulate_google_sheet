@@ -221,16 +221,26 @@ class OperationSheet:
 
     def change_access_right(self):
         self.check_sheet(show_user=False)
-        sheet_index = input("Please enter the sheet ID number to change the access right(-1 to exit.): ")
-        if sheet_index == "-1": return
+        while True:
+            sheet_index = input("Please enter the sheet ID number to change the access right (-1 to exit.): ")
+            if sheet_index.isdigit() or (sheet_index.startswith('-') and sheet_index[1:].isdigit()):
+                break
+            else: print("Invalid input. Please enter a number.")
 
+        if sheet_index == "-1": return
+        
         print("This is the user list of the sheet:", self.sheets[int(sheet_index)]['user_list'])
 
-        user_name = input("Please enter the user name: ")
-        access_right = input("Please enter the access right(ReadOnly, ReadWrite): ")
-        if self.is_user_exit_list() == False:
+        user_name = input("Please enter the username you want to add: ")
+        if self.is_user_exit_list(user_name) == False and user_name != self.current_user:
             print("The user is not exist!")
             return
+        
+        access_right = input("Please enter the access right (ReadOnly, ReadWrite): ")
+        if access_right not in ["ReadOnly", "ReadWrite"]:
+            print("Invalid input. Please enter 'ReadOnly' or 'ReadWrite'.")
+            return
+        
             
         is_user_exist = False
         for user in self.users:
@@ -297,6 +307,7 @@ class OperationSheet:
             if user['user_name'] == user_name:
                 is_exit = True
                 break
+            
         return is_exit
     
 if __name__ == "__main__":
