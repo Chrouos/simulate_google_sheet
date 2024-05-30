@@ -9,8 +9,6 @@ class OperationSheet:
     
     def __init__(self) -> None:
         
-        # 4. Change a value in a sheet
-        # 5. Change a sheet's access right.
         # 6. Collaborate with an other user
         
         self.current_user = 'admin'
@@ -55,15 +53,15 @@ class OperationSheet:
             self.create_user()
         elif select_option == "2":
             self.login()
-        elif select_option == "3":
+        elif select_option == "3" and self.is_login():
             self.logout()
-        elif select_option == "4":
+        elif select_option == "4" and self.is_login():
             self.create_sheet()
-        elif select_option == "5":
+        elif select_option == "5"  and self.is_login():
             self.check_sheet()
             sheet_index = input("Please enter the sheet ID number to check the content(-1 to exit.): ")
             self.print_sheet_content(sheet_index)
-        elif select_option == "6":
+        elif select_option == "6" and self.is_login():
             self.access_sheet()
         elif select_option == "0":
             return False
@@ -114,17 +112,10 @@ class OperationSheet:
                 break
             
     def logout(self):
-        if self.current_user is None:
-            print("Please login first!")
-        else:
-            print("Logout successfully! See you next time, " + str(self.current_user) + " !")
-            self.current_user = None
+        print("Logout successfully! See you next time, " + str(self.current_user) + " !")
+        self.current_user = None
 
     def create_sheet(self):
-        
-        if self.current_user is None:
-            print("Please login first!")
-            return
         
         sheet_name = input("Please enter the sheet name: ")
         self.sheets.append({
@@ -136,26 +127,19 @@ class OperationSheet:
         
         print(f"Create a new sheet '{sheet_name}' for {self.current_user} successfully!")
         
-    def check_sheet(self):
-        
-        if self.current_user is None:
-            print("Please login first!")
-            return
+    def check_sheet(self, show_user=True):
         
         print()
         for index, sheet in enumerate(self.sheets):
             if sheet['owner_name'] == self.current_user:
                 print(f"Sheet ID number: {index}, Sheet Name: {sheet['sheet_name']}")
                 
-            for user in sheet['user_list']:
-                if user['user_name'] == self.current_user:
-                    print(f"Sheet ID number: {index}, Sheet Name: {sheet['sheet_name']}, Sheet Access Right: {user['access_right']}")
-                
+            if show_user:
+                for user in sheet['user_list']:
+                    if user['user_name'] == self.current_user:
+                        print(f"Sheet ID number: {index}, Sheet Name: {sheet['sheet_name']}, Sheet Access Right: {user['access_right']}")
+                    
     def access_sheet(self):
-        
-        if self.current_user is None:
-            print("Please login first!")
-            return
         
         os.system('cls' if os.name == 'nt' else 'clear')
         while True:
@@ -164,6 +148,9 @@ class OperationSheet:
             Now access in: {self.sheets[self.current_sheet_index]['sheet_name'] if self.current_sheet_index is not None else "None"}
             ---------------Sheet Menu---------------
             1. Select the sheet
+            4. change access right of the sheet
+            
+            # have selected the sheet
             2. Print the sheet content
             3. change_value
             
@@ -173,10 +160,12 @@ class OperationSheet:
             select_option = input("Please enter your action option(number please): ")
             if select_option == "1":
                 self.select_sheet()
-            elif select_option == "2":
+            elif select_option == "2" and self.is_select_sheet():
                 self.print_sheet_content(self.current_sheet_index)
-            elif select_option == "3":
+            elif select_option == "3" and self.is_select_sheet():
                 self.change_value()
+            elif select_option == "4":
+                self.change_access_right()
             elif select_option == "0":
                 break
             else:
@@ -197,9 +186,6 @@ class OperationSheet:
             print("Now you are successfully access the sheet: " + self.sheets[self.current_sheet_index]['sheet_name'])
 
     def change_value(self):
-        if self.current_sheet_index is None:
-            print("Please access the sheet first!")
-            return
         
         self.print_sheet_content(self.current_sheet_index)
         row_index = input("Please enter the row number to change the value: ")
@@ -228,7 +214,55 @@ class OperationSheet:
         os.system('cls' if os.name == 'nt' else 'clear')
         self.print_sheet_content(self.current_sheet_index)
 
+    def change_access_right(self):
+        self.check_sheet(show_user=False)
+        sheet_index = input("Please enter the sheet ID number to change the access right(-1 to exit.): ")
+        if sheet_index == "-1": return
+
+        print("This is the user list of the sheet:", self.sheets[int(sheet_index)]['user_list'])
+
+        user_name = input("Please enter the user name: ")
+        access_right = input("Please enter the access right(ReadOnly, ReadWrite): ")
+        if self.is_user_exit_list() == False:
+            print("The user is not exist!")
+            return
+            
+        is_user_exist = False
+        for user in self.users:
+            if user['user_name'] == user_name:
+                is_user_exist = True
+                break
         
+        if is_user_exist == False:
+            print("Now we added the user to the user list.")
+            self.sheets[int(sheet_index)]['user_list'].append({
+                "user_name": user_name,
+                "access_right": access_right
+            })
+        elif is_user_exist:
+            print("Now we changed the access right of the user.")
+            for user in self.sheets[int(sheet_index)]['user_list']:
+                if user['user_name'] == user_name:
+                    user['access_right'] = access_right
+                    break
+                
+        print("This is the new user list of the sheet:", self.sheets[int(sheet_index)]['user_list'])
+        
+
+    def is_select_sheet(self):
+        if self.current_sheet_index is None:
+            print("Please select the sheet first!")
+            return False
+        
+        return True
+
+    def is_login(self):
+        if self.current_user is None:
+            print("Please login first!")
+            return False
+        
+        return True
+
     def print_sheet_content(self, sheet_index):
         try:
             if sheet_index == "-1" or sheet_index is None:
@@ -253,8 +287,14 @@ class OperationSheet:
             print("Please enter the correct sheet ID number!")
             return "-1"
 
+    def is_user_exit_list(self, user_name):
+        is_exit = False
+        for user in self.users:
+            if user['user_name'] == user_name:
+                is_exit = True
+                break
+        return is_exit
     
 if __name__ == "__main__":
-    
     operation_sheet = OperationSheet()
     
