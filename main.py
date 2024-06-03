@@ -186,6 +186,8 @@ class OperationSheet:
     def change_value(self):
         
         self.print_sheet_content(self.current_sheet_index)
+        if self.check_user_access(self.current_sheet_index, self.current_user) == False: return
+            
         row_index = input("Please enter the row number to change the value: ")
         column_index = input("Please enter the column number to change the value: ")
         value = input("Please enter the new value: ")
@@ -228,9 +230,9 @@ class OperationSheet:
             else: print("Invalid input. Please enter a number.")
 
         if sheet_index == "-1": return
-        
         print("This is the user list of the sheet:", self.sheets[int(sheet_index)]['user_list'])
 
+        if self.check_user_access(self.current_sheet_index, self.current_user) == False: return
         user_name = input("Please enter the username you want to add: ")
         if self.is_user_exit_list(user_name) == False and user_name != self.current_user:
             print("The user is not exist!")
@@ -241,7 +243,6 @@ class OperationSheet:
             print("Invalid input. Please enter 'ReadOnly' or 'ReadWrite'.")
             return
         
-            
         is_user_exist = False
         for user in self.users:
             if user['user_name'] == user_name:
@@ -310,6 +311,20 @@ class OperationSheet:
             
         return is_exit
     
+    def check_user_access(self, current_sheet_index, current_user):
+        if self.sheets[current_sheet_index]['owner_name'] != current_user:
+            is_access = False
+            for user in self.sheets[current_sheet_index]['user_list']:
+                if user['user_name'] == current_user and user['access_right'] == "ReadWrite":
+                    is_access = True
+                    break
+            
+            if is_access == False:
+                print("You do not have the access right to change the value!")
+                return False
+        
+        return True
+            
 if __name__ == "__main__":
     operation_sheet = OperationSheet()
     
